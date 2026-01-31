@@ -20,6 +20,7 @@ If the file doesn't exist, create it. If it exists, append to it.
 
 | Agent | Project Location | Global Location |
 |-------|------------------|-----------------|
+| **OpenCode** | `.opencode/AGENTS.md` | - |
 | **Claude Code** | `.claude/CLAUDE.md` | `~/.claude/CLAUDE.md` |
 | **GitHub Copilot** | `.github/copilot-instructions.md` | - |
 | **Cursor** | `.cursorrules` | `~/.cursor/rules/` |
@@ -35,7 +36,7 @@ When the user invokes this skill, perform these steps:
 ### Step 1: Detect Existing Agent Configurations
 
 Check which instruction files/directories exist:
-- Look for `.claude/`, `.github/`, `.cursorrules`, `.windsurfrules`, `.clinerules`, `.continuerules`, `CONVENTIONS.md`
+- Look for `.opencode/`, `.claude/`, `.github/`, `.cursorrules`, `.windsurfrules`, `.clinerules`, `.continuerules`, `CONVENTIONS.md`
 - Note: Use appropriate file detection for the user's OS (Windows vs Unix)
 
 ### Step 2: Ask User About Scope
@@ -67,7 +68,7 @@ Add the following section to the END of each instruction file:
 
 ### Step 4: Agent-Specific Formats (APPEND ONLY)
 
-**For agents using markdown** (Claude Code, Copilot, Cline, Continue.dev):
+**For agents using markdown** (OpenCode, Claude Code, Copilot, Cline, Continue.dev):
 - If file EXISTS: Read it first, then APPEND the configuration to the END
 - If file DOES NOT EXIST: Create new file with the configuration
 - **NEVER use Write tool to overwrite - use Edit tool to append, or read+write preserving content**
@@ -114,6 +115,7 @@ After creating/updating files:
 
 ## Resources
 
+- **OpenCode**: https://github.com/opencode-ai/opencode
 - **Claude Code**: https://docs.anthropic.com/en/docs/claude-code
 - **GitHub Copilot Instructions**: https://docs.github.com/en/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot
 - **Cursor Rules**: https://docs.cursor.com/context/rules-for-ai
