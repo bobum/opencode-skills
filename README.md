@@ -22,23 +22,44 @@ Skills are SKILL.md files that provide domain-specific knowledge and patterns to
 | Skill | Description |
 |-------|-------------|
 | `react-best-practices` | Performance optimization patterns from Vercel Engineering |
+| `react-patterns` | Modern React patterns: hooks, composition, TypeScript |
+| `react-state-management` | Redux Toolkit, Zustand, Jotai, React Query patterns |
 | `composition-patterns` | React composition patterns that scale |
 | `component-testing` | Vitest patterns for testing React components |
 | `e2e-testing` | Playwright patterns for end-to-end testing |
+| `e2e-testing-patterns` | Comprehensive Playwright/Cypress testing patterns |
 
 ### .NET & Backend
 
 | Skill | Description |
 |-------|-------------|
+| `dotnet-architect` | Expert .NET patterns: ASP.NET Core, EF Core, Dapper, caching |
 | `ef-migrations` | EF Core migration patterns and best practices |
 | `authorization` | JWT/Azure AD B2C authorization patterns |
 | `integration-testing` | SQLite in-memory integration testing patterns |
+| `cqrs-implementation` | Command Query Responsibility Segregation patterns |
 
-### API & Testing
+### API & Database
 
 | Skill | Description |
 |-------|-------------|
+| `api-design-principles` | REST and GraphQL API design best practices |
 | `mock-json-api` | Stateless mock API patterns with scenario-based testing |
+| `postgres-best-practices` | Postgres optimization from Supabase (indexing, RLS, queries) |
+| `sql-optimization-patterns` | Query optimization, EXPLAIN analysis, indexing |
+
+### TypeScript & Security
+
+| Skill | Description |
+|-------|-------------|
+| `typescript-advanced-types` | Generics, conditional types, mapped types, utility types |
+| `owasp-security` | OWASP Top 10 prevention patterns with code examples |
+
+### Agent Configuration
+
+| Skill | Description |
+|-------|-------------|
+| `honest-agent` | Configure AI agents for honest, objective feedback |
 
 ## Installation
 
@@ -80,8 +101,11 @@ Each skill is a directory containing a `SKILL.md` file:
 
 ## Attribution
 
-Some skills are adapted from:
+Skills are adapted from:
 - [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) - React best practices and composition patterns (MIT License)
+- [sickn33/antigravity-awesome-skills](https://github.com/sickn33/antigravity-awesome-skills) - .NET, TypeScript, API, SQL, CQRS patterns
+- [hoodini/ai-agents-skills](https://github.com/hoodini/ai-agents-skills) - OWASP security, honest-agent configuration
+- [Supabase](https://supabase.com) - Postgres best practices
 
 ## License
 
