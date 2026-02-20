@@ -1,11 +1,23 @@
 ---
 name: pr-workflow
-description: Standardized PR creation workflow with proper issue linking. Use when creating pull requests across any any repo.
+description: Standardized PR creation workflow with proper issue linking. Use when creating pull requests across any repo.
 ---
 
 # Pull Request Workflow
 
 This skill covers the complete workflow for creating PRs with proper issue references.
+
+## Placeholder Tokens
+
+Throughout this skill, you'll see these placeholder tokens in examples:
+
+- **`your-org`** — Replace with the GitHub organization you are currently working in (e.g., the org that owns the repo)
+- **`your-repo`** — Replace with the name of the repository you are currently working in (e.g., the repo your branch is in)
+- **`your-other-repo`** — Replace with the name of a different repository in the same org (for cross-repo references)
+
+**Always substitute these with real values.** Check your current context: `git remote -v` shows the org and repo.
+
+---
 
 ## Critical: Issue Linking
 
@@ -18,11 +30,11 @@ This skill covers the complete workflow for creating PRs with proper issue refer
 Closes #123
 
 # RIGHT - explicit repo, verifiable
-Closes your-org/your-repo#123
+Closes your-org/your-repo#210
 
 # RIGHT - cross-repo reference
-Closes your-org/your-repo-web#45
-Closes your-org/your-repo-meta#12
+Closes your-org/your-other-repo#45
+Closes your-org/your-other-repo#12
 ```
 
 ### Verification Before Linking
@@ -31,13 +43,13 @@ Closes your-org/your-repo-meta#12
 
 ```bash
 # Verify it's an issue and check its state
-gh issue view 123 --repo your-org/your-repo --json number,title,state,url
+gh issue view 210 --repo your-org/your-repo --json number,title,state,url
 
 # If this fails with "not found" or shows a PR, DO NOT use it
-# PRs are accessed via: gh pr view 123 --repo ...
+# PRs are accessed via: gh pr view 210 --repo ...
 
-# Get the full URL for the PR body
-gh issue view 123 --repo your-org/your-repo --json url --jq '.url'
+# Get the full issue URL for the PR body
+gh issue view 210 --repo your-org/your-repo --json url --jq '.url'
 ```
 
 ### What to Check
@@ -75,12 +87,12 @@ git push -u origin feature/your-branch-name
 
 ```bash
 # Check the issue exists and is open
-gh issue view 123 --repo your-org/your-repo --json number,title,state
+gh issue view 210 --repo your-org/your-repo --json number,title,state
 
 # Expected output:
 # {
-#   "number": 123,
-#   "title": "Add user profile page",
+#   "number": 210,
+#   "title": "DPI yardage distribution fix",
 #   "state": "OPEN"
 # }
 
@@ -93,21 +105,20 @@ gh issue view 123 --repo your-org/your-repo --json number,title,state
 gh pr create \
   --repo your-org/your-repo \
   --base main \
-  --title "Add user profile page" \
+  --title "Fix: Brief description of change" \
   --body "$(cat <<'EOF'
 ## Summary
 
-- Implemented profile page with user stats
-- Added avatar upload functionality
-- Created responsive layout for mobile
+- Description of main change
+- Additional changes
 
 ## Test Plan
 
-- [ ] Verify profile loads with user data
-- [ ] Test avatar upload with various file sizes
-- [ ] Check mobile layout on different viewports
+- [ ] All unit tests pass
+- [ ] Integration tests pass
+- [ ] Manual verification steps
 
-Closes your-org/your-repo#123
+Closes your-org/your-repo#210
 EOF
 )"
 ```
@@ -127,7 +138,7 @@ EOF
 - [ ] [How to verify the change works]
 - [ ] [Additional test scenarios]
 
-Closes your-org/{repo}#{issue_number}
+Closes your-org/your-repo#<issue-number>
 ```
 
 ---
@@ -138,12 +149,12 @@ When a PR in one repo relates to issues in another:
 
 ```bash
 # Verify each issue first
-gh issue view 50 --repo your-org/your-repo-meta --json title,state
-gh issue view 265 --repo your-org/your-repo --json title,state
+gh issue view 50 --repo your-org/your-repo --json title,state
+gh issue view 265 --repo your-org/your-other-repo --json title,state
 
 # In PR body, use full references
-Part of Epic your-org/your-repo-meta#50
-Closes your-org/your-repo#265
+Part of your-org/your-repo#50
+Closes your-org/your-other-repo#265
 ```
 
 ---
@@ -166,7 +177,7 @@ Closes your-org/your-repo#265
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|
-| `Closes #123` | Ambiguous - might link to PR #123 | Use `your-org/repo#123` |
+| `Closes #123` | Ambiguous - might link to PR #123 | Use `your-org/your-repo#123` |
 | Not verifying first | Links to wrong item | Run `gh issue view` first |
 | Linking to closed issue | Confusing, no effect | Check `state` field |
 | Wrong repo | Links to wrong project | Verify repo in `gh issue view` |
@@ -174,15 +185,72 @@ Closes your-org/your-repo#265
 
 ---
 
+## ⚠️ PR Body Updates: Use REST API, Not `gh pr edit`
+
+> **`gh pr edit --body` silently fails.** It returns a GraphQL "Projects Classic deprecation" warning but does NOT actually update the PR body. This is a known issue when the repo has GitHub Projects linked.
+
+### The Problem
+
+```bash
+# DON'T DO THIS - silently fails, body is NOT updated
+gh pr edit 222 --repo your-org/your-repo --body "new body text"
+# Returns GraphQL warning but body remains unchanged
+```
+
+### The Fix: Use REST API
+
+```bash
+# DO THIS - reliably updates the PR body
+gh api repos/your-org/your-repo/pulls/222 \
+  -X PATCH \
+  -f body="$(cat <<'EOF'
+## Summary
+
+- Your PR description here
+
+Closes your-org/your-repo#210
+EOF
+)"
+```
+
+### For Long PR Bodies
+
+Write the body to a temp file first:
+
+```bash
+cat > /tmp/pr-body.md <<'EOF'
+## Summary
+
+- Change description here
+
+## Test Plan
+
+- [ ] Tests pass
+
+Closes your-org/your-repo#210
+EOF
+
+gh api repos/your-org/your-repo/pulls/222 \
+  -X PATCH \
+  -f body="$(cat /tmp/pr-body.md)"
+```
+
+### Why This Matters
+
+- The `gh pr edit --body` command uses GraphQL, which conflicts with GitHub Projects Classic deprecation
+- The REST API (`gh api ... -X PATCH`) bypasses this entirely and works reliably
+- **Always use REST API for updating PR bodies** in any repo with GitHub Projects linked
+
+---
+
 ## Repository Reference Guide
 
-| Repo | Full Reference |
-|------|----------------|
-| API backend | `your-org/your-repo#N` |
-| Frontend | `your-org/your-repo-web#N` |
-| Simulation engine | `your-org/your-repo-engine#N` |
-| Injury engine | `your-org/your-repo-injury#N` |
-| Meta/Epics | `your-org/your-repo-meta#N` |
+When working in a multi-repo project, maintain a mental map of which repos exist. Use `your-org/your-repo#N` format for every issue reference, substituting the actual organization and repository names.
+
+For example, if your org is `acme` and you're closing issue #42 in the `backend` repo:
+```
+Closes acme/backend#42
+```
 
 ---
 
