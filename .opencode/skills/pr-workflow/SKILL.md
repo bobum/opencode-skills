@@ -7,6 +7,18 @@ description: Standardized PR creation workflow with proper issue linking. Use wh
 
 This skill covers the complete workflow for creating PRs with proper issue references.
 
+## Placeholder Tokens
+
+Throughout this skill, you'll see these placeholder tokens in examples:
+
+- **`your-org`** — Replace with the GitHub organization you are currently working in (e.g., the org that owns the repo)
+- **`your-repo`** — Replace with the name of the repository you are currently working in (e.g., the repo your branch is in)
+- **`your-other-repo`** — Replace with the name of a different repository in the same org (for cross-repo references)
+
+**Always substitute these with real values.** Check your current context: `git remote -v` shows the org and repo.
+
+---
+
 ## Critical: Issue Linking
 
 > **NEVER use bare `#123` references.** GitHub uses the same numbering for issues AND PRs, so `#123` could link to a closed PR instead of the intended issue.
@@ -18,11 +30,11 @@ This skill covers the complete workflow for creating PRs with proper issue refer
 Closes #123
 
 # RIGHT - explicit repo, verifiable
-Closes merciless-creations/gridiron-engine#210
+Closes your-org/your-repo#210
 
 # RIGHT - cross-repo reference
-Closes merciless-creations/gridiron-web#45
-Closes merciless-creations/gridiron-meta#12
+Closes your-org/your-other-repo#45
+Closes your-org/your-other-repo#12
 ```
 
 ### Verification Before Linking
@@ -31,13 +43,13 @@ Closes merciless-creations/gridiron-meta#12
 
 ```bash
 # Verify it's an issue and check its state
-gh issue view 210 --repo merciless-creations/gridiron-engine --json number,title,state,url
+gh issue view 210 --repo your-org/your-repo --json number,title,state,url
 
 # If this fails with "not found" or shows a PR, DO NOT use it
 # PRs are accessed via: gh pr view 210 --repo ...
 
 # Get the full URL for the PR body
-gh issue view 210 --repo merciless-creations/gridiron-engine --json url --jq '.url'
+gh issue view 210 --repo your-org/your-repo --json url --jq '.url'
 ```
 
 ### What to Check
@@ -75,7 +87,7 @@ git push -u origin feature/your-branch-name
 
 ```bash
 # Check the issue exists and is open
-gh issue view 210 --repo merciless-creations/gridiron-engine --json number,title,state
+gh issue view 210 --repo your-org/your-repo --json number,title,state
 
 # Expected output:
 # {
@@ -91,23 +103,22 @@ gh issue view 210 --repo merciless-creations/gridiron-engine --json number,title
 
 ```bash
 gh pr create \
-  --repo merciless-creations/gridiron-engine \
+  --repo your-org/your-repo \
   --base main \
-  --title "Fix DPI yardage distribution" \
+  --title "Fix: Brief description of change" \
   --body "$(cat <<'EOF'
 ## Summary
 
-- Implemented log-normal distribution for DPI yardage sampling
-- Added coverage penalty completion damping
-- Added DPI yardage validation to validator
+- Description of main change
+- Additional changes
 
 ## Test Plan
 
 - [ ] All unit tests pass
-- [ ] 1000-game validation within 15% of NFL targets
-- [ ] DPI fires on both complete and incomplete passes
+- [ ] Integration tests pass
+- [ ] Manual verification steps
 
-Closes merciless-creations/gridiron-engine#210
+Closes your-org/your-repo#210
 EOF
 )"
 ```
@@ -127,7 +138,7 @@ EOF
 - [ ] [How to verify the change works]
 - [ ] [Additional test scenarios]
 
-Closes merciless-creations/{repo}#{issue_number}
+Closes your-org/your-repo#{issue_number}
 ```
 
 ---
@@ -138,12 +149,12 @@ When a PR in one repo relates to issues in another:
 
 ```bash
 # Verify each issue first
-gh issue view 50 --repo merciless-creations/gridiron-meta --json title,state
-gh issue view 265 --repo merciless-creations/gridiron --json title,state
+gh issue view 50 --repo your-org/your-repo --json title,state
+gh issue view 265 --repo your-org/your-other-repo --json title,state
 
 # In PR body, use full references
-Part of merciless-creations/gridiron-meta#50
-Closes merciless-creations/gridiron#265
+Part of your-org/your-repo#50
+Closes your-org/your-other-repo#265
 ```
 
 ---
@@ -166,7 +177,7 @@ Closes merciless-creations/gridiron#265
 
 | Mistake | Problem | Fix |
 |---------|---------|-----|
-| `Closes #123` | Ambiguous - might link to PR #123 | Use `merciless-creations/repo#123` |
+| `Closes #123` | Ambiguous - might link to PR #123 | Use `your-org/your-repo#123` |
 | Not verifying first | Links to wrong item | Run `gh issue view` first |
 | Linking to closed issue | Confusing, no effect | Check `state` field |
 | Wrong repo | Links to wrong project | Verify repo in `gh issue view` |
@@ -182,7 +193,7 @@ Closes merciless-creations/gridiron#265
 
 ```bash
 # DON'T DO THIS - silently fails, body is NOT updated
-gh pr edit 222 --repo merciless-creations/gridiron-engine --body "new body text"
+gh pr edit 222 --repo your-org/your-repo --body "new body text"
 # Returns GraphQL warning but body remains unchanged
 ```
 
@@ -190,14 +201,14 @@ gh pr edit 222 --repo merciless-creations/gridiron-engine --body "new body text"
 
 ```bash
 # DO THIS - reliably updates the PR body
-gh api repos/merciless-creations/gridiron-engine/pulls/222 \
+gh api repos/your-org/your-repo/pulls/222 \
   -X PATCH \
   -f body="$(cat <<'EOF'
 ## Summary
 
 - Your PR description here
 
-Closes merciless-creations/gridiron-engine#210
+Closes your-org/your-repo#210
 EOF
 )"
 ```
@@ -216,10 +227,10 @@ cat > /tmp/pr-body.md <<'EOF'
 
 - [ ] Tests pass
 
-Closes merciless-creations/gridiron-engine#210
+Closes your-org/your-repo#210
 EOF
 
-gh api repos/merciless-creations/gridiron-engine/pulls/222 \
+gh api repos/your-org/your-repo/pulls/222 \
   -X PATCH \
   -f body="$(cat /tmp/pr-body.md)"
 ```
@@ -228,19 +239,18 @@ gh api repos/merciless-creations/gridiron-engine/pulls/222 \
 
 - The `gh pr edit --body` command uses GraphQL, which conflicts with GitHub Projects Classic deprecation
 - The REST API (`gh api ... -X PATCH`) bypasses this entirely and works reliably
-- **Always use REST API for updating PR bodies** in merciless-creations repos
+- **Always use REST API for updating PR bodies** in any repo with GitHub Projects linked
 
 ---
 
 ## Repository Reference Guide
 
-| Repo | Full Reference |
-|------|----------------|
-| API backend | `merciless-creations/gridiron#N` |
-| Frontend | `merciless-creations/gridiron-web#N` |
-| Simulation engine | `merciless-creations/gridiron-engine#N` |
-| Injury engine | `merciless-creations/gridiron-injury#N` |
-| Meta/Epics | `merciless-creations/gridiron-meta#N` |
+When working in a multi-repo project, maintain a mental map of which repos exist. Use `your-org/your-repo#N` format for every issue reference, substituting the actual organization and repository names.
+
+For example, if your org is `acme` and you're closing issue #42 in the `backend` repo:
+```
+Closes acme/backend#42
+```
 
 ---
 
@@ -255,9 +265,9 @@ Run this before creating any PR with issue references:
 REPO=$1
 ISSUE=$2
 
-echo "Checking merciless-creations/$REPO#$ISSUE..."
+echo "Checking your-org/$REPO#$ISSUE..."
 
-result=$(gh issue view $ISSUE --repo merciless-creations/$REPO --json number,title,state,url 2>&1)
+result=$(gh issue view $ISSUE --repo your-org/$REPO --json number,title,state,url 2>&1)
 
 if echo "$result" | grep -q "Could not resolve"; then
     echo "ERROR: Issue #$ISSUE not found in $REPO"
@@ -277,7 +287,7 @@ echo "Found: $title"
 echo "State: $state"
 echo "URL: $url"
 echo ""
-echo "Use in PR body: Closes merciless-creations/$REPO#$ISSUE"
+echo "Use in PR body: Closes your-org/$REPO#$ISSUE"
 ```
 
 ---
