@@ -48,7 +48,7 @@ gh issue view 210 --repo your-org/your-repo --json number,title,state,url
 # If this fails with "not found" or shows a PR, DO NOT use it
 # PRs are accessed via: gh pr view 210 --repo ...
 
-# Get the full URL for the PR body
+# Get the full issue URL for the PR body
 gh issue view 210 --repo your-org/your-repo --json url --jq '.url'
 ```
 
