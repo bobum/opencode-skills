@@ -1,6 +1,6 @@
 ---
 name: pr-workflow
-description: Standardized PR creation workflow with proper issue linking. Use when creating pull requests across any any repo.
+description: Standardized PR creation workflow with proper issue linking. Use when creating pull requests across any repo.
 ---
 
 # Pull Request Workflow
