@@ -138,7 +138,7 @@ EOF
 - [ ] [How to verify the change works]
 - [ ] [Additional test scenarios]
 
-Closes your-org/your-repo#{issue_number}
+Closes your-org/your-repo#<issue-number>
 ```
 
 ---
