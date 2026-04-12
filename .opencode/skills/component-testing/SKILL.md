@@ -41,6 +41,55 @@ await fetch('http://localhost:3002/_scenario', {
 await fetch('http://localhost:3002/_reset', { method: 'POST' });
 ```
 
+### Simulating State Changes Mid-Test (MANDATORY)
+
+> **Always use `setScenario()` to simulate different server state mid-test. Never rely on query parameters or `_reset`.**
+
+`mock-json-api` caches responses by `route.name + route.testScope + route.testScenario`. Query parameters are **NOT** part of the cache key. This means:
+- Changing query params (filters, pagination, sort) will return the **same cached response**
+- `_reset` clears the store but doesn't change the cache key — the next request with the same scenario name still gets cached after its first call
+
+The **only** reliable way to get fresh responses mid-test is to switch to a named scenario, which changes the cache key and forces the scenario function to re-execute.
+
+```typescript
+// WRONG - query params are ignored by cache, returns stale data
+await user.selectOptions(screen.getByLabelText(/Type/i), 'Franchise Tag');
+// ❌ Mock server returns same unfiltered data — cache key unchanged
+
+// WRONG - _reset doesn't help because cache key stays the same
+await fetch('http://localhost:3002/_reset', { method: 'POST' });
+await user.selectOptions(screen.getByLabelText(/Type/i), 'Franchise Tag');
+// ❌ First request re-caches unfiltered data under the same guid
+
+// CORRECT - switch scenario to change cache key, then interact
+await setScenario('getLeagueTransactions', 'franchiseTagScenario');
+await user.selectOptions(screen.getByLabelText(/Type/i), 'Franchise Tag');
+await waitFor(() => {
+  expect(screen.getByText('Showing 2 of 2')).toBeInTheDocument();
+});
+// ✅ New scenario name = new cache key = fresh data
+```
+
+**When writing mock-server routes**, always create named scenarios for each distinct data state the UI needs:
+
+```javascript
+// mock-server/routes/transactions/index.js
+module.exports = [
+  {
+    name: 'getLeagueTransactions',
+    path: '/api/leagues/:leagueId/transactions',
+    method: 'GET',
+    scenarios: {
+      default: (req) => allTransactions,              // unfiltered
+      franchiseTagScenario: (req) => franchiseTagOnly, // pre-filtered
+      team1Scenario: (req) => team1Only,               // pre-filtered
+      emptyScenario: () => [],                         // empty state
+      errorScenario: { status: 500, body: { error: 'Server error' } },
+    }
+  }
+];
+```
+
 ### Anti-Pattern: Hook-Level Mocking
 
 ```typescript
